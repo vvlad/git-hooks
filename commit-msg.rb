@@ -8,14 +8,20 @@ require 'highline/import'
 api_key = `git config --get pivotal.api-key`.strip
 project_id = `git config --get pivotal.project-id`.strip
 
+
 puts "git config --global --set pivotal.api-key <your api key>" if api_key.empty?
 puts "git config --local --set pivotal.project-id <project id>" if project_id.empty?
+
+stories = IO.read(ARGV.first).scan(/\[\w+\s{0,}?#(\d+)\s{0,}?\]/).map do |match|
+  $1
+end
+
+exit 0 if stories.empty?
 
 PivotalTracker::Client.token = api_key
 project = PivotalTracker::Project.find( project_id )
 
-msg = IO.read(ARGV.first).scan(/\[(\w+)\s{0,}?#(\d+)\s{0,}?\]/).map do |match|
-  stroy_id = $2
+msg = stories.each do |stroy_id|
   if stroy = project.stories.find(stroy_id)
     "[#{$1} ##{stroy_id}] #{stroy.name}"
   else
