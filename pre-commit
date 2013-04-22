@@ -11,10 +11,11 @@ fi
 
 specs=""
 for spec in `git diff --cached --name-status | awk '$1 != "R" { print $2 }' | grep "\.rb$" | sed 's/^app/spec/g' | sed 's/\.rb/_spec.rb/g'` ; do
-  specs="$specs $spec"
+  test -f $spec && specs="$specs $spec"
 done
 
 test -z "$specs" && exit 0
+echo "Found specs $specs please be patient..."
 grep zeus Gemfile >/dev/null 2>&1 && ( zeus spec $specs || exit 1 )
 grep spork Gemfile >/dev/null 2>&1 && ( rspec $specs || exit 1 )
 if [ ! $? -eq 0 ] ; then
